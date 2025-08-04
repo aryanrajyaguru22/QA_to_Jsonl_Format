@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conversational JSONL Converter</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .custom-shadow {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+    <div class="container mx-auto p-4 sm:p-6 md:p-8 max-w-4xl">
+        <div class="bg-white rounded-2xl p-8 custom-shadow">
+            
+            <header class="text-center mb-8">
+                <h1 class="text-3xl sm:text-4xl font-bold text-gray-900">Conversational JSONL Converter</h1>
+                <p class="mt-2 text-gray-600">Generate a conversational JSONL file for LLM fine-tuning.</p>
+            </header>
+
+            <!-- Step 1: System Message -->
+            <div class="mb-6">
+                <label for="systemContent" class="block text-lg font-semibold text-gray-700 mb-2">Step 1: Define System Role Content</label>
+                <input type="text" id="systemContent" value="You are a helpful assistant providing information about the WaterMinder app." class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition" placeholder="e.g., You are a helpful assistant.">
+            </div>
+
+            <!-- Step 2: Input Text -->
+            <div class="mb-6">
+                <label for="inputText" class="block text-lg font-semibold text-gray-700 mb-2">Step 2: Paste Your Conversational Text</label>
+                <textarea id="inputText" rows="15" class="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition" placeholder="Example:
+
+User: How do I change my daily water intake goal?
+Assistant: To change your daily water intake goal in WaterMinder, open the app, go to Settings, select your profile, and adjust the values accordingly based on your preferences.
+
+User: How do I track other drinks?
+Assistant: In the app's main screen, tap the '+' icon and choose from a variety of drink types to log them.">User: Adding WaterMinder Widgets to Your Home Screen
+Assistant: You can now add WaterMinder widgets to your phone's home screen, making it even easier to track your water intake every day. Your device will need iOS 14 or above. Make sure you also update WaterMinder to the latest version.
+
+How to Add a WaterMinder Widget
+1. Tap and hold anywhere on the home screen of your phone. This will make your apps jiggle and display a minus symbol. You'll also see a + symbol in the top corner of your screen. Tap the + symbol.
+2. In the search box, start typing WaterMinder and tap on the option when it appears.
+3. You will then see the available widgets. Select the one you want to add to your home screen.
+
+Available Widgets:
+To customize a widget's settings, tap and hold it, then select "Edit Widget".
+
+1. Hydration Progress (Simple): Gives you a simple visual representation of your current hydration progress.
+2. Hydration Progress (Small): A compact, square widget showing your daily hydration level, total consumed, remaining amount, and a percentage.
+3. Hydration Progress with Avatar: Shows your current hydration progress along with your avatar image.
+4. Hydration Progress with Cups: Displays your progress and your regular cups for quick, one-tap logging.
+5. Today's Progress Graph (Small & Wide): A graph of today's progress, available in two sizes.
+6. Weekly Progress Graph: Shows how much water you have consumed today, your average daily intake, and a graph of your intake over the past week.
+7. Detailed Hydration View: The most comprehensive widget, displaying today's progress, a weekly results graph, and other statistical information.
+
+Removing a WaterMinder Widget From Your Home Screen
+1. Tap and hold the widget until a menu appears.
+2. Tap "Remove Widget".</textarea>
+            </div>
+
+            <!-- Step 3: Define Delimiters -->
+            <div class="mb-8">
+                <label class="block text-lg font-semibold text-gray-700 mb-2">Step 3: Define Your Delimiters</label>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label for="userDelimiter" class="block text-sm font-medium text-gray-600">User role starts with:</label>
+                        <input type="text" id="userDelimiter" value="User:" class="mt-1 w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
+                    </div>
+                    <div>
+                        <label for="assistantDelimiter" class="block text-sm font-medium text-gray-600">Assistant role starts with:</label>
+                        <input type="text" id="assistantDelimiter" value="Assistant:" class="mt-1 w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 4: Generate -->
+            <div class="text-center mb-8">
+                <button id="generateBtn" class="bg-indigo-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-4 focus:ring-indigo-300 transition-transform transform hover:scale-105">
+                    Generate JSONL
+                </button>
+            </div>
+
+            <!-- Step 5: Output -->
+            <div id="output-container" class="hidden">
+                <div class="flex justify-between items-center mb-2">
+                    <label for="outputText" class="block text-lg font-semibold text-gray-700">Step 5: Your JSONL Output</label>
+                    <button id="copyBtn" class="bg-gray-200 text-gray-700 font-semibold py-2 px-4 rounded-lg hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400 transition">
+                        Copy to Clipboard
+                    </button>
+                </div>
+                <div class="relative">
+                    <pre class="w-full bg-gray-900 text-white p-4 rounded-lg overflow-x-auto max-h-96"><code id="outputText"></code></pre>
+                    <div id="copy-success" class="absolute top-2 right-2 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-md hidden">Copied!</div>
+                </div>
+                 <p class="mt-2 text-sm text-gray-500">Each line is a separate JSON object containing a conversation array.</p>
+            </div>
+             <div id="error-message" class="hidden mt-4 text-center text-red-600 bg-red-100 p-3 rounded-lg"></div>
+        </div>
+    </div>
+
+    <script>
+        // --- DOM Element References ---
+        const generateBtn = document.getElementById('generateBtn');
+        const copyBtn = document.getElementById('copyBtn');
+        const systemContent = document.getElementById('systemContent');
+        const inputText = document.getElementById('inputText');
+        const outputText = document.getElementById('outputText');
+        const outputContainer = document.getElementById('output-container');
+        const errorMessage = document.getElementById('error-message');
+        const copySuccessMessage = document.getElementById('copy-success');
+
+        /**
+         * Generates a JSONL string from the input text based on the conversational format.
+         */
+        function generateJsonl() {
+            // --- Get User Inputs ---
+            const systemText = systemContent.value.trim();
+            const text = inputText.value.trim();
+            const uDelimiter = document.getElementById('userDelimiter').value.trim();
+            const aDelimiter = document.getElementById('assistantDelimiter').value.trim();
+
+            // --- Reset UI State ---
+            errorMessage.classList.add('hidden');
+            errorMessage.textContent = '';
+            outputContainer.classList.add('hidden');
+
+            // --- Input Validation ---
+            if (!systemText) {
+                showError("The system role content cannot be empty.");
+                return;
+            }
+            if (!text) {
+                showError("The conversational text cannot be empty.");
+                return;
+            }
+            if (!uDelimiter || !aDelimiter) {
+                showError("User and Assistant delimiters cannot be empty.");
+                return;
+            }
+
+            // --- Parsing Logic ---
+            try {
+                // Split the text into blocks. We assume each conversation pair is separated by one or more newlines.
+                const blocks = text.split(/\n\s*\n/).filter(block => block.trim() !== '');
+                const jsonlOutput = [];
+
+                blocks.forEach((block, index) => {
+                    // Find the start of the user and assistant content within the block.
+                    const uIndex = block.indexOf(uDelimiter);
+                    const aIndex = block.indexOf(aDelimiter);
+
+                    if (uIndex === -1 || aIndex === -1) {
+                        // If delimiters are not found, we can't process this block.
+                        throw new Error(`Could not find delimiters in block #${index + 1}. Please check your text and delimiters.`);
+                    }
+
+                    // Extract the user content and assistant content.
+                    const userContent = block.substring(uIndex + uDelimiter.length, aIndex).trim();
+                    const assistantContent = block.substring(aIndex + aDelimiter.length).trim();
+                    
+                    if (!userContent || !assistantContent) {
+                         throw new Error(`Found empty user or assistant content in block #${index + 1}.`);
+                    }
+
+                    // Create the JSON object array for the conversation.
+                    const jsonObject = [
+                        { "role": "system", "content": systemText },
+                        { "role": "user", "content": userContent },
+                        { "role": "assistant", "content": assistantContent }
+                    ];
+                    jsonlOutput.push(JSON.stringify(jsonObject));
+                });
+                
+                if (jsonlOutput.length === 0) {
+                    showError("No valid conversational pairs were found. Please check your input text and delimiters.");
+                    return;
+                }
+
+                // --- Display Output ---
+                outputText.textContent = jsonlOutput.join('\n');
+                outputContainer.classList.remove('hidden');
+
+            } catch (error) {
+                showError(error.message);
+            }
+        }
+        
+        /**
+         * Displays an error message to the user.
+         * @param {string} message - The error message to display.
+         */
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorMessage.classList.remove('hidden');
+        }
+
+        /**
+         * Copies the generated JSONL text to the clipboard.
+         */
+        function copyToClipboard() {
+            // We use a temporary textarea to hold the text for the copy command.
+            const tempTextArea = document.createElement('textarea');
+            tempTextArea.value = outputText.textContent;
+            document.body.appendChild(tempTextArea);
+            tempTextArea.select();
+            
+            try {
+                // Use the older execCommand for broader compatibility within iFrames.
+                document.execCommand('copy');
+                
+                // Show a success message to the user.
+                copySuccessMessage.classList.remove('hidden');
+                setTimeout(() => {
+                    copySuccessMessage.classList.add('hidden');
+                }, 2000);
+
+            } catch (err) {
+                console.error('Failed to copy text: ', err);
+                alert('Failed to copy text. Please copy it manually.');
+            }
+            
+            document.body.removeChild(tempTextArea);
+        }
+
+        // --- Event Listeners ---
+        generateBtn.addEventListener('click', generateJsonl);
+        copyBtn.addEventListener('click', copyToClipboard);
+
+    </script>
+</body>
+</html>
